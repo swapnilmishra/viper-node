@@ -12,4 +12,3 @@ viper like config manager
 - reading from command line flags
 - reading from buffer
 - setting explicit values
-
