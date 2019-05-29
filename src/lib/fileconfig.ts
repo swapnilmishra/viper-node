@@ -7,24 +7,26 @@ import {
   Yml,
   Toml
 } from "./consts";
-import { ConfigManager } from "./configmanager";
+import { ConfigReader, Config } from "./configmanager";
 
-export class FileConfig implements ConfigManager {
+export class FileConfigReader implements ConfigReader {
   private fileName: string = "";
   private filePath: string = "";
   private fileType: string | undefined;
-  public SetConfigName(fileName: string): void {
+  private config: Config;
+
+  public setConfigName(fileName: string): void {
     this.fileName = fileName;
   }
-  public AddConfigPath(path: string): void {
+
+  public addConfigPath(path: string): void {
     this.filePath = path;
   }
-  public ReadInConfig(): { error?: Error } {
+
+  public readInConfig(): { error?: Error } {
     if (this.fileName === "" && this.filePath === "") {
       return { error: ErrorInvalidFilePath };
     }
-
-    console.log(`Filename ${this.fileName}`);
 
     const [, fileType] = this.fileName.split(".");
 
@@ -34,10 +36,9 @@ export class FileConfig implements ConfigManager {
 
     this.fileType = FileType.get(fileType);
 
-    console.log(this.fileType);
-
     switch (this.fileType) {
       case Json:
+        this.readJSON(this.filePath);
         break;
       case Yaml:
         break;
@@ -50,5 +51,35 @@ export class FileConfig implements ConfigManager {
     }
 
     return { error: undefined };
+  }
+
+  private readJSON(name: string) {
+    const config = require(name);
+    this.config = new JsonConfig(config);
+  }
+}
+
+class JsonConfig implements Config {
+  private config: Object;
+  constructor(config: Object) {
+    this.config = config;
+  }
+  getString(propertyPath: string): string {
+    throw new Error("Method not implemented.");
+  }
+  getInt(propertyPath: string): number {
+    throw new Error("Method not implemented.");
+  }
+  getBoolean(propertyPath: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  getDate(propertyPath: string): Date {
+    throw new Error("Method not implemented.");
+  }
+  getStringArray(propertyPath: string): string[] {
+    throw new Error("Method not implemented.");
+  }
+  getIntArray(propertyPath: string): number[] {
+    throw new Error("Method not implemented.");
   }
 }
