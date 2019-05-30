@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/swapnilmishra/viper-node.svg?style=svg)](https://circleci.com/gh/swapnilmishra/viper-node)
+
 # viper-nodejs
 
 viper like config manager
