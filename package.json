@@ -13,15 +13,15 @@
   "keywords": [],
   "scripts": {
     "describe": "npm-scripts-info",
-    "build": "run-s clean && run-p build:*",
+    "build": "run-s clean && run-p build:main",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:tslint": "tslint --fix --project .",
-    "test": "jest",
+    "test": "jest --coverage",
     "watch": "run-s clean build:main && run-p \"build:main -- -w\" \"test:unit -- --watch\"",
-    "cov": "run-s build test:unit cov:html && opn coverage/index.html",
+    "cov": "run-s build test cov:html && opn coverage/index.html",
     "cov:html": "nyc report --reporter=html",
     "cov:send": "nyc report --reporter=lcov > coverage.lcov && codecov",
     "cov:check": "nyc report && nyc check-coverage --lines 100 --functions 100 --branches 100",
@@ -36,7 +36,6 @@
     "prepare-release": "run-s all version doc:publish",
     "preinstall": "node -e \"if(process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('viper-nodejs must be installed with Yarn: https://yarnpkg.com/')\"",
     "commit": "npx git-cz"
-    
   },
   "scripts-info": {
     "info": "Display information about the package scripts",
@@ -51,7 +50,6 @@
     "reset": "Delete all untracked files and reset the repo to the last commit",
     "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "codecov": "^3.1.0",

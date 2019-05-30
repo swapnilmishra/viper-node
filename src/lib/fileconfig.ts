@@ -1,30 +1,29 @@
 import {
   ErrorInvalidFilePath,
   ErrorNoFileType,
-  FileType,
-  Json,
-  Yaml,
-  Yml,
-  Toml
+  FileTypeMapping,
+  Json
 } from "./consts";
-import { ConfigReader, Config } from "./configmanager";
+import { ConfigReader } from "./interfaces";
+
+import path from "path";
 
 export class FileConfigReader implements ConfigReader {
   private fileName: string = "";
-  private filePath: string = "";
+  private lookupPath: string = "";
   private fileType: string | undefined;
-  private config: Config;
+  private config: any;
 
   public setConfigName(fileName: string): void {
     this.fileName = fileName;
   }
 
   public addConfigPath(path: string): void {
-    this.filePath = path;
+    this.lookupPath = path;
   }
 
   public readInConfig(): { error?: Error } {
-    if (this.fileName === "" && this.filePath === "") {
+    if (this.fileName === "" || this.lookupPath === "") {
       return { error: ErrorInvalidFilePath };
     }
 
@@ -34,52 +33,56 @@ export class FileConfigReader implements ConfigReader {
       return { error: ErrorNoFileType };
     }
 
-    this.fileType = FileType.get(fileType);
+    this.fileType = FileTypeMapping().get(fileType);
 
     switch (this.fileType) {
       case Json:
-        this.readJSON(this.filePath);
-        break;
-      case Yaml:
-        break;
-      case Yml:
-        break;
-      case Toml:
-        break;
-      default:
+        this.readJSON();
         break;
     }
 
     return { error: undefined };
   }
 
-  private readJSON(name: string) {
-    const config = require(name);
-    this.config = new JsonConfig(config);
-  }
-}
-
-class JsonConfig implements Config {
-  private config: Object;
-  constructor(config: Object) {
-    this.config = config;
-  }
   getString(propertyPath: string): string {
-    throw new Error("Method not implemented.");
+    const conf = this.config[propertyPath];
+    return String(conf);
   }
   getInt(propertyPath: string): number {
-    throw new Error("Method not implemented.");
+    const conf = this.config[propertyPath];
+    return parseInt(conf);
   }
   getBoolean(propertyPath: string): boolean {
-    throw new Error("Method not implemented.");
+    const conf = this.config[propertyPath];
+    return Boolean(conf);
   }
   getDate(propertyPath: string): Date {
-    throw new Error("Method not implemented.");
+    const conf = this.config[propertyPath];
+    return new Date(conf);
   }
   getStringArray(propertyPath: string): string[] {
-    throw new Error("Method not implemented.");
+    const conf: any[] = this.config[propertyPath];
+
+    if (conf === undefined) {
+      return [];
+    }
+    const confs: string[] = conf.map(c => {
+      return String(c);
+    });
+    return confs;
   }
   getIntArray(propertyPath: string): number[] {
-    throw new Error("Method not implemented.");
+    const conf: any[] = this.config[propertyPath];
+    if (conf === undefined) {
+      return [];
+    }
+    const confs: number[] = conf.map(c => {
+      return parseInt(c);
+    });
+    return confs;
+  }
+
+  private readJSON() {
+    this.config = require(path.join(this.lookupPath, this.fileName));
   }
 }
