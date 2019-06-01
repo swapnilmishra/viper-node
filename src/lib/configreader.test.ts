@@ -1,4 +1,4 @@
-import { ConfigReader } from "./fileconfig";
+import { ConfigReader } from "./configreader";
 import path from "path";
 import {
   ErrorInvalidFilePath,
@@ -57,9 +57,21 @@ describe("file based config tests", () => {
       expect(name).toBe("bob");
     });
 
+    test("reads string value from env instead of config", () => {
+      process.env.NAME = "bobby";
+      const name = config.getString("name");
+      expect(name).toBe("bobby");
+    });
+
     test("reads int value correctly", () => {
       const age = config.getInt("age");
       expect(age).toBe(24);
+    });
+
+    test("reads int value from env instead of config", () => {
+      process.env.AGE = "30";
+      const age = config.getInt("age");
+      expect(age).toBe(30);
     });
 
     test("reads boolean value correctly", () => {
