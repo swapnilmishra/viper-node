@@ -1,4 +1,4 @@
-import { ConfigReader } from "./configreader";
+import { ConfigReader, writeNestedProperty } from "./configreader";
 import path from "path";
 import {
   ErrorInvalidFilePath,
@@ -45,7 +45,7 @@ describe("file based config tests", () => {
 
   describe("test json config", () => {
     let config: ConfigReader;
-    beforeAll(() => {
+    beforeEach(() => {
       config = new ConfigReader();
       config.addConfigPath(path.join(__dirname, "../testdata"));
       config.setConfigName("test.json");
@@ -61,6 +61,26 @@ describe("file based config tests", () => {
       process.env.NAME = "bobby";
       const name = config.getString("name");
       expect(name).toBe("bobby");
+    });
+
+    test("reads string value from explicit setKV and not from env or config file", () => {
+      process.env.NAME = "bobby";
+      config.setKV("name", "ranu");
+      const name = config.getString("name");
+      expect(name).toBe("ranu");
+    });
+
+    test("reads string value from explicit deep setKV call", () => {
+      config.setKV("company.name", "oracle");
+      const companyName = config.getString("company.name");
+      expect(companyName).toBe("oracle");
+    });
+
+    test("reads string value from env using setEnvKeyReplacer", () => {
+      process.env.COMPANY_NAME = "cyborg";
+      config.setEnvKeyReplacer(".", "_");
+      const companyName = config.getString("company.name");
+      expect(companyName).toBe("cyborg");
     });
 
     test("reads int value correctly", () => {
@@ -152,6 +172,65 @@ describe("file based config tests", () => {
     test("returns empty array when the config is not found for getIntArray", () => {
       const counts = config.getIntArray("counts.count");
       expect(counts).toStrictEqual([]);
+    });
+  });
+
+  describe("test object manipulation", function() {
+    test("sets the value into the key if it is already present", () => {
+      const obj: any = {
+        name: {
+          firstName: "Swapnil",
+          surname: "Mishra"
+        }
+      };
+
+      writeNestedProperty("name.surname", obj, "joseph");
+      expect(obj).toStrictEqual({
+        name: {
+          firstName: "Swapnil",
+          surname: "joseph"
+        }
+      });
+    });
+
+    test("sets the value into the key if even part of it is present", () => {
+      const obj: any = {
+        name: {
+          firstName: "Swapnil",
+          surname: "Mishra"
+        },
+        address: {
+          street: {
+            number: 123,
+            name: "str."
+          }
+        }
+      };
+
+      writeNestedProperty("address", obj, {
+        street: {
+          number: 125,
+          name: "str."
+        }
+      });
+      expect(obj).toStrictEqual({
+        name: {
+          firstName: "Swapnil",
+          surname: "Mishra"
+        },
+        address: {
+          street: {
+            number: 125,
+            name: "str."
+          }
+        }
+      });
+    });
+
+    test("creates key and sets the value if it is not present", () => {
+      const obj = {};
+      writeNestedProperty("name.surname", obj, "joseph");
+      expect(obj).toStrictEqual({ name: { surname: "joseph" } });
     });
   });
 });

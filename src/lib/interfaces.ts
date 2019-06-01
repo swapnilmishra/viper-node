@@ -3,6 +3,7 @@ export interface IConfigReader {
   addConfigPath(path: string): void;
   readInConfig(): { error?: Error };
   setEnvKeyReplacer(replacedKey: string, replaceWith: string): void;
+  setKV(key: string, value: any): void;
   getString(propertyPath: string): string;
   getInt(propertyPath: string): number;
   getBoolean(propertyPath: string): boolean;

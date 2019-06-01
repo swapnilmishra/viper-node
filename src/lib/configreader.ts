@@ -17,6 +17,7 @@ export class ConfigReader implements IConfigReader {
   private lookupPath!: string;
   private fileType: string | undefined;
   private replacer!: KeyReplacer;
+  private kvCache: Object = {};
 
   public setConfigName(fileName: string): void {
     this.fileName = fileName;
@@ -55,12 +56,23 @@ export class ConfigReader implements IConfigReader {
   setEnvKeyReplacer(replacedKey: string, replacedWith: string): void {
     this.replacer = { replacedKey: replacedKey, replacedWith: replacedWith };
   }
+  setKV(propertyPath: string, value: any): void {
+    writeNestedProperty(propertyPath, this.kvCache, value);
+  }
   getString(propertyPath: string): string {
-    const propVal = this.readFromEnv(propertyPath);
-    if (propVal) {
-      return String(propVal);
+    let conf: string | undefined;
+
+    conf = readNestedProperty(propertyPath, this.kvCache);
+    if (conf) {
+      return String(conf);
     }
-    const conf = readProperty(propertyPath, this.config);
+
+    conf = this.readFromEnv(propertyPath);
+    if (conf) {
+      return String(conf);
+    }
+
+    conf = readNestedProperty(propertyPath, this.config);
     return String(conf);
   }
   getInt(propertyPath: string): number {
@@ -68,19 +80,19 @@ export class ConfigReader implements IConfigReader {
     if (propVal) {
       return parseInt(propVal);
     }
-    const conf = readProperty(propertyPath, this.config);
+    const conf = readNestedProperty(propertyPath, this.config);
     return parseInt(conf);
   }
   getBoolean(propertyPath: string): boolean {
-    const conf = readProperty(propertyPath, this.config);
+    const conf = readNestedProperty(propertyPath, this.config);
     return Boolean(conf);
   }
   getDate(propertyPath: string): Date {
-    const conf = readProperty(propertyPath, this.config);
+    const conf = readNestedProperty(propertyPath, this.config);
     return new Date(conf);
   }
   getStringArray(propertyPath: string): string[] {
-    const conf: any[] = readProperty(propertyPath, this.config);
+    const conf: any[] = readNestedProperty(propertyPath, this.config);
 
     if (conf === undefined) {
       return [];
@@ -91,7 +103,7 @@ export class ConfigReader implements IConfigReader {
     return confs;
   }
   getIntArray(propertyPath: string): number[] {
-    const conf: any[] = readProperty(propertyPath, this.config);
+    const conf: any[] = readNestedProperty(propertyPath, this.config);
     if (conf === undefined) {
       return [];
     }
@@ -104,7 +116,7 @@ export class ConfigReader implements IConfigReader {
   private readFromEnv(propertyPath: string): string | undefined {
     let envKey = propertyPath.toUpperCase();
     if (this.replacer) {
-      envKey = this.keyToEnv(propertyPath);
+      envKey = this.keyToEnv(envKey);
     }
     return process.env[envKey];
   }
@@ -114,9 +126,9 @@ export class ConfigReader implements IConfigReader {
   }
 }
 
-function readProperty(propPath: string, readFromObj: any): any {
+export function readNestedProperty(propPath: string, targetObj: any): any {
   const props = propPath.split(".");
-  let propVal = readFromObj;
+  let propVal = targetObj;
   for (let i = 0; i < props.length; i++) {
     propVal = propVal[props[i]];
     if (propVal === undefined) {
@@ -124,4 +136,50 @@ function readProperty(propPath: string, readFromObj: any): any {
     }
   }
   return propVal;
+}
+
+/**
+ * given a key in the form "key1.key2"(propPath) for "obj"(targetObj) this function sets the value
+ * in obj for obj[key1][key2]. It also created intermediate objects if necessary
+ * @param propPath
+ * @param targetObj
+ * @param value
+ */
+export function writeNestedProperty(
+  propPath: string,
+  targetObj: any,
+  value: any
+): void {
+  const props = propPath.split(".");
+
+  (function findProp(obj: any, propNames: string[], index: number): void {
+    const propName = props[index];
+    const propVal = obj[propName];
+    if (propNames.length === 1) {
+      obj[propNames[0]] = value;
+      return;
+    }
+    if (propVal) {
+      index++;
+      return findProp(propVal, propNames.slice(index), index);
+    } else {
+      fillObjectIfEmpty(obj, propNames.slice(index), value);
+    }
+  })(targetObj, props, 0);
+}
+
+export function fillObjectIfEmpty(
+  obj: any,
+  propNames: string[],
+  value: string
+): void {
+  if (propNames.length === 1) {
+    obj[propNames[0]] = value;
+    return;
+  }
+  let keyName = propNames[0];
+  if (!obj[keyName]) {
+    obj[keyName] = {};
+    return fillObjectIfEmpty(obj[keyName], propNames.slice(1), value);
+  }
 }
