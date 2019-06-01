@@ -2,17 +2,21 @@ import {
   ErrorInvalidFilePath,
   ErrorNoFileType,
   FileTypeMapping,
-  Json
+  Json,
+  Toml,
+  ErrorUnrecognisedFormat
 } from "./consts";
-import { ConfigReader } from "./interfaces";
+import { IFileReader, IPropertyReader } from "./interfaces";
+import { PropertyReader } from "./propertyreader";
 
 import path from "path";
+import fs from "fs";
 
-export class FileConfigReader implements ConfigReader {
-  private fileName: string = "";
-  private lookupPath: string = "";
+export class ConfigReader implements IFileReader, IPropertyReader {
+  private fileName!: string;
+  private lookupPath!: string;
   private fileType: string | undefined;
-  private config: any;
+  private configType!: IPropertyReader;
 
   public setConfigName(fileName: string): void {
     this.fileName = fileName;
@@ -23,7 +27,7 @@ export class FileConfigReader implements ConfigReader {
   }
 
   public readInConfig(): { error?: Error } {
-    if (this.fileName === "" || this.lookupPath === "") {
+    if (!this.fileName || !this.lookupPath) {
       return { error: ErrorInvalidFilePath };
     }
 
@@ -34,55 +38,42 @@ export class FileConfigReader implements ConfigReader {
     }
 
     this.fileType = FileTypeMapping().get(fileType);
-
+    let readConfig;
     switch (this.fileType) {
       case Json:
-        this.readJSON();
+        readConfig = require(path.join(this.lookupPath, this.fileName));
+        this.configType = new PropertyReader(readConfig);
         break;
+      case Toml:
+        const toml = require("toml");
+        readConfig = toml.parse(
+          fs.readFileSync(path.join(this.lookupPath, this.fileName))
+        );
+        this.configType = new PropertyReader(readConfig);
+        break;
+      default:
+        return { error: ErrorUnrecognisedFormat };
     }
 
     return { error: undefined };
   }
 
   getString(propertyPath: string): string {
-    const conf = this.config[propertyPath];
-    return String(conf);
+    return this.configType.getString(propertyPath);
   }
   getInt(propertyPath: string): number {
-    const conf = this.config[propertyPath];
-    return parseInt(conf);
+    return this.configType.getInt(propertyPath);
   }
   getBoolean(propertyPath: string): boolean {
-    const conf = this.config[propertyPath];
-    return Boolean(conf);
+    return this.configType.getBoolean(propertyPath);
   }
   getDate(propertyPath: string): Date {
-    const conf = this.config[propertyPath];
-    return new Date(conf);
+    return this.configType.getDate(propertyPath);
   }
   getStringArray(propertyPath: string): string[] {
-    const conf: any[] = this.config[propertyPath];
-
-    if (conf === undefined) {
-      return [];
-    }
-    const confs: string[] = conf.map(c => {
-      return String(c);
-    });
-    return confs;
+    return this.configType.getStringArray(propertyPath);
   }
   getIntArray(propertyPath: string): number[] {
-    const conf: any[] = this.config[propertyPath];
-    if (conf === undefined) {
-      return [];
-    }
-    const confs: number[] = conf.map(c => {
-      return parseInt(c);
-    });
-    return confs;
-  }
-
-  private readJSON() {
-    this.config = require(path.join(this.lookupPath, this.fileName));
+    return this.configType.getIntArray(propertyPath);
   }
 }

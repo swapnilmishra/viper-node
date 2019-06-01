@@ -1,5 +1,6 @@
 {
   "name": "viper-nodejs",
+  "author": "@swapnilmishra",
   "version": "1.0.0",
   "description": "viper like config manager",
   "main": "build/main/index.js",
@@ -11,7 +12,6 @@
   },
   "license": "MIT",
   "keywords": [],
-  "engines": {"node": ">=8"},
   "scripts": {
     "describe": "npm-scripts-info",
     "build": "run-s clean && run-p build:main",
@@ -45,6 +45,9 @@
     "version": "Bump package.json version, update CHANGELOG.md, tag release",
     "reset": "Delete all untracked files and reset the repo to the last commit",
     "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
+  },
+  "dependencies": {
+    "toml": "^3.0.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
@@ -81,6 +84,5 @@
   "bugs": {
     "url": "https://github.com/YOUR_GITHUB_USER_NAME/viper-nodejs/issues"
   },
-  "homepage": "https://github.com/YOUR_GITHUB_USER_NAME/viper-nodejs#readme",
-  "author": ""
+  "homepage": "https://github.com/YOUR_GITHUB_USER_NAME/viper-nodejs#readme"
 }
