@@ -1,4 +1,7 @@
 [![CircleCI](https://circleci.com/gh/swapnilmishra/viper-node.svg?style=svg)](https://circleci.com/gh/swapnilmishra/viper-node)
+[![codecov](https://codecov.io/gh/swapnilmishra/viper-node/branch/master/graph/badge.svg)](https://codecov.io/gh/swapnilmishra/viper-node)
+
+
 
 # viper-nodejs
 
