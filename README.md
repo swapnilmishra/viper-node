@@ -7,7 +7,7 @@ viper like config manager
 # project goals
 
 - setting defaults
-- reading from JSON, TOML, YAML, HCL, and Java properties config files
+- reading from JSON, TOML, YAML
 - live watching and re-reading of config files (optional)
 - reading from environment variables
 - reading from remote config systems (etcd or Consul), and watching changes
