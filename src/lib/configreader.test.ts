@@ -175,6 +175,51 @@ describe("file based config tests", () => {
     });
   });
 
+  describe("test yaml config", () => {
+    let config: ConfigReader;
+    beforeAll(() => {
+      config = new ConfigReader();
+      config.addConfigPath(path.join(__dirname, "../testdata"));
+      config.setConfigName("test.yaml");
+      const { error } = config.readInConfig();
+      expect(error).toBe(undefined);
+    });
+    test("reads string value correctly", () => {
+      const title = config.getString("title");
+      expect(title).toBe("Deep dive into TOML, JSON and YAML");
+    });
+    test("reads float value correctly", () => {
+      const sitemap = config.getFloat("sitemap.priority");
+      expect(sitemap).toBe(0.5);
+    });
+
+    test("reads float value from env correctly", () => {
+      config.setKV("sitemap.priority", 3.0);
+      const sitemap = config.getFloat("sitemap.priority");
+      expect(sitemap).toBe(3.0);
+    });
+
+    test("reads boolean value correctly", () => {
+      const ready = config.getBoolean("ready");
+      expect(ready).toBeTruthy();
+    });
+
+    test("reads date value correctly", () => {
+      const publishDate = config.getDate("publishdate");
+      expect(publishDate).toStrictEqual(new Date("2016-12-14T21:27:05.454Z"));
+    });
+
+    test("reads array of string values correctly", () => {
+      const tags = config.getStringArray("tags");
+      expect(tags).toStrictEqual(["toml", "yaml", "json"]);
+    });
+
+    test("returns empty array when the config is not found for getStringArray", () => {
+      const tags = config.getStringArray("hosts.something");
+      expect(tags).toStrictEqual([]);
+    });
+  });
+
   describe("test object manipulation", function() {
     test("sets the value into the key if it is already present", () => {
       const obj: any = {

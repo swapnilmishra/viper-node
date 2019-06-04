@@ -4,12 +4,15 @@ import {
   FileTypeMapping,
   Json,
   Toml,
-  ErrorUnrecognisedFormat
+  ErrorUnrecognisedFormat,
+  Yaml
 } from "./consts";
 import { IConfigReader, KeyReplacer } from "./interfaces";
 
 import path from "path";
 import fs from "fs";
+import { safeLoad as yamlPArser } from "js-yaml";
+import { parse as tomlParser } from "toml";
 
 export class ConfigReader implements IConfigReader {
   private config: any;
@@ -42,9 +45,13 @@ export class ConfigReader implements IConfigReader {
         this.config = require(path.join(this.lookupPath, this.fileName));
         break;
       case Toml:
-        const toml = require("toml");
-        this.config = toml.parse(
-          fs.readFileSync(path.join(this.lookupPath, this.fileName))
+        this.config = tomlParser(
+          fs.readFileSync(path.join(this.lookupPath, this.fileName)).toString()
+        );
+        break;
+      case Yaml:
+        this.config = yamlPArser(
+          fs.readFileSync(path.join(this.lookupPath, this.fileName)).toString()
         );
         break;
       default:
@@ -61,39 +68,78 @@ export class ConfigReader implements IConfigReader {
   }
   getString(propertyPath: string): string {
     let conf: string | undefined;
-
-    conf = readNestedProperty(propertyPath, this.kvCache);
+    conf = readProp(propertyPath, this.kvCache);
     if (conf) {
       return String(conf);
     }
-
     conf = this.readFromEnv(propertyPath);
     if (conf) {
       return String(conf);
     }
-
-    conf = readNestedProperty(propertyPath, this.config);
+    conf = readProp(propertyPath, this.config);
     return String(conf);
   }
   getInt(propertyPath: string): number {
-    const propVal = this.readFromEnv(propertyPath);
-    if (propVal) {
-      return parseInt(propVal);
+    let conf: any;
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return parseInt(conf);
     }
-    const conf = readNestedProperty(propertyPath, this.config);
+    conf = this.readFromEnv(propertyPath);
+    if (conf) {
+      return parseInt(conf);
+    }
+    conf = readProp(propertyPath, this.config);
     return parseInt(conf);
   }
+  getFloat(propertyPath: string): number {
+    let conf: any;
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return parseFloat(conf);
+    }
+    conf = this.readFromEnv(propertyPath);
+    if (conf) {
+      return parseFloat(conf);
+    }
+    conf = readProp(propertyPath, this.config);
+    return parseFloat(conf);
+  }
   getBoolean(propertyPath: string): boolean {
-    const conf = readNestedProperty(propertyPath, this.config);
+    let conf: any;
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return Boolean(conf);
+    }
+    conf = this.readFromEnv(propertyPath);
+    if (conf) {
+      return Boolean(conf);
+    }
+    conf = readProp(propertyPath, this.config);
     return Boolean(conf);
   }
   getDate(propertyPath: string): Date {
-    const conf = readNestedProperty(propertyPath, this.config);
+    let conf: any;
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return new Date(conf);
+    }
+    conf = this.readFromEnv(propertyPath);
+    if (conf) {
+      return new Date(conf);
+    }
+    conf = readProp(propertyPath, this.config);
     return new Date(conf);
   }
   getStringArray(propertyPath: string): string[] {
-    const conf: any[] = readNestedProperty(propertyPath, this.config);
-
+    let conf: any[];
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return conf.map(c => {
+        return String(c);
+      });
+    }
+    conf = readProp(propertyPath, this.config);
     if (conf === undefined) {
       return [];
     }
@@ -103,12 +149,37 @@ export class ConfigReader implements IConfigReader {
     return confs;
   }
   getIntArray(propertyPath: string): number[] {
-    const conf: any[] = readNestedProperty(propertyPath, this.config);
+    let conf: any[];
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return conf.map(c => {
+        return parseInt(c);
+      });
+    }
+    conf = readProp(propertyPath, this.config);
     if (conf === undefined) {
       return [];
     }
     const confs: number[] = conf.map(c => {
       return parseInt(c);
+    });
+    return confs;
+  }
+
+  getFloatArray(propertyPath: string): number[] {
+    let conf: any[];
+    conf = readProp(propertyPath, this.kvCache);
+    if (conf) {
+      return conf.map(c => {
+        return parseFloat(c);
+      });
+    }
+    conf = readProp(propertyPath, this.config);
+    if (conf === undefined) {
+      return [];
+    }
+    const confs: number[] = conf.map(c => {
+      return parseFloat(c);
     });
     return confs;
   }
@@ -126,7 +197,7 @@ export class ConfigReader implements IConfigReader {
   }
 }
 
-export function readNestedProperty(propPath: string, targetObj: any): any {
+export function readProp(propPath: string, targetObj: any): any {
   const props = propPath.split(".");
   let propVal = targetObj;
   for (let i = 0; i < props.length; i++) {

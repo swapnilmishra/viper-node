@@ -1,0 +1,18 @@
+publishdate: "2016-12-14T21:27:05.454Z"
+title: Deep dive into TOML, JSON and YAML
+tags:
+  - toml
+  - yaml
+  - json
+type: article
+amp:
+  elements: []
+article:
+  lead: Lorem ipsum.
+  category: frontmatter
+  related: []
+sitemap:
+  changefreq: monthly
+  priority: 0.5
+  filename: sitemap.xml
+ready: true
