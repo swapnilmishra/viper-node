@@ -1,9 +1,9 @@
 export interface IConfigReader {
-  setConfigName(fileName: string): void;
-  addConfigPath(path: string): void;
+  setConfigName(fileName: string): IConfigReader;
+  addConfigPath(path: string): IConfigReader;
   readInConfig(): { error?: Error };
-  setEnvKeyReplacer(replacedKey: string, replaceWith: string): void;
-  setKV(key: string, value: any): void;
+  setEnvKeyReplacer(replacedKey: string, replaceWith: string): IConfigReader;
+  setKV(key: string, value: any): IConfigReader;
   getString(propertyPath: string): string;
   getInt(propertyPath: string): number;
   getFloat(propertyPath: string): number;

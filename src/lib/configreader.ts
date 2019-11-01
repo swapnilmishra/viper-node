@@ -22,11 +22,13 @@ export class ConfigReader implements IConfigReader {
   private replacer!: KeyReplacer;
   private kvCache: Object = {};
 
-  public setConfigName(fileName: string): void {
+  public setConfigName(fileName: string): IConfigReader {
     this.fileName = fileName;
+    return this;
   }
-  public addConfigPath(path: string): void {
+  public addConfigPath(path: string): IConfigReader {
     this.lookupPath = path;
+    return this;
   }
   public readInConfig(): { error?: Error } {
     if (!this.fileName || !this.lookupPath) {
@@ -60,11 +62,13 @@ export class ConfigReader implements IConfigReader {
 
     return { error: undefined };
   }
-  setEnvKeyReplacer(replacedKey: string, replacedWith: string): void {
+  setEnvKeyReplacer(replacedKey: string, replacedWith: string): IConfigReader {
     this.replacer = { replacedKey: replacedKey, replacedWith: replacedWith };
+    return this;
   }
-  setKV(propertyPath: string, value: any): void {
+  setKV(propertyPath: string, value: any): IConfigReader {
     writeNestedProperty(propertyPath, this.kvCache, value);
+    return this;
   }
   getString(propertyPath: string): string {
     let conf: string | undefined;
