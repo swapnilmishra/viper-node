@@ -7,26 +7,24 @@ import {
 } from "./consts";
 
 describe("file based config tests", () => {
-  describe("config reader init tests", () => {
-    test("missing mandatory configName", () => {
-      let config: ConfigReader;
+  let config: ConfigReader;
+  describe("trying to read the config throws error", () => {
+    beforeEach(() => {
       config = new ConfigReader();
+    });
+    test("missing mandatory configName", () => {
       config.addConfigPath(path.join(__dirname, "../testdata"));
       const { error } = config.readInConfig();
       expect(error).toBe(ErrorInvalidFilePath);
     });
 
     test("missing mandatory configPath", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
       config.setConfigName("test.json");
       const { error } = config.readInConfig();
       expect(error).toBe(ErrorInvalidFilePath);
     });
 
     test("missing mandatory file extension", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
       config.addConfigPath(path.join(__dirname, "../testdata"));
       config.setConfigName("test");
       const { error } = config.readInConfig();
@@ -34,8 +32,6 @@ describe("file based config tests", () => {
     });
 
     test("missing mandatory file extension", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
       config.addConfigPath(path.join(__dirname, "../testdata"));
       config.setConfigName("test.format");
       const { error } = config.readInConfig();
