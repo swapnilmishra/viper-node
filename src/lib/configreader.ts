@@ -22,11 +22,13 @@ export class ConfigReader implements IConfigReader {
   private replacer!: KeyReplacer;
   private kvCache: Object = {};
 
-  public setConfigName(fileName: string): void {
+  public setConfigName(fileName: string): IConfigReader {
     this.fileName = fileName;
+    return this;
   }
-  public addConfigPath(path: string): void {
+  public addConfigPath(path: string): IConfigReader {
     this.lookupPath = path;
+    return this;
   }
   public readInConfig(): { error?: Error } {
     if (!this.fileName || !this.lookupPath) {
@@ -60,11 +62,13 @@ export class ConfigReader implements IConfigReader {
 
     return { error: undefined };
   }
-  setEnvKeyReplacer(replacedKey: string, replacedWith: string): void {
+  setEnvKeyReplacer(replacedKey: string, replacedWith: string): IConfigReader {
     this.replacer = { replacedKey: replacedKey, replacedWith: replacedWith };
+    return this;
   }
-  setKV(propertyPath: string, value: any): void {
+  setKV(propertyPath: string, value: any): IConfigReader {
     writeNestedProperty(propertyPath, this.kvCache, value);
+    return this;
   }
   getString(propertyPath: string): string {
     let conf: string | undefined;
@@ -203,30 +207,30 @@ export function readProp(propPath: string, targetObj: any): any {
 
 /**
  * given a key in the form "key1.key2"(propPath) for "obj"(targetObj) this function sets the value
- * in obj for obj[key1][key2]. It also created intermediate objects if necessary
- * @param propPath
+ * in obj for obj[key1][key2]. It also creates intermediate objects if necessary
+ * @param propertyPath
  * @param targetObj
- * @param value
+ * @param propertyValue
  */
 export function writeNestedProperty(
-  propPath: string,
+  propertyPath: string,
   targetObj: any,
-  value: any
+  propertyValue: any
 ): void {
-  const props = propPath.split(".");
+  const props = propertyPath.split(".");
 
   (function findProp(obj: any, propNames: string[], index: number): void {
     const propName = props[index];
     const propVal = obj[propName];
     if (propNames.length === 1) {
-      obj[propNames[0]] = value;
+      obj[propNames[0]] = propertyValue;
       return;
     }
     if (propVal) {
       index++;
       return findProp(propVal, propNames.slice(index), index);
     } else {
-      fillObjectIfEmpty(obj, propNames.slice(index), value);
+      fillObjectIfEmpty(obj, propNames.slice(index), propertyValue);
     }
   })(targetObj, props, 0);
 }

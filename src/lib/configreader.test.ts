@@ -7,37 +7,35 @@ import {
 } from "./consts";
 
 describe("file based config tests", () => {
-  describe("config reader init tests", () => {
-    test("missing mandatory configName", () => {
-      let config: ConfigReader;
+  let config: ConfigReader;
+  describe("trying to read the config throws error", () => {
+    beforeEach(() => {
       config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      const { error } = config.readInConfig();
+    });
+    test("missing mandatory configName", () => {
+      const { error } = config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .readInConfig();
       expect(error).toBe(ErrorInvalidFilePath);
     });
 
     test("missing mandatory configPath", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
-      config.setConfigName("test.json");
-      const { error } = config.readInConfig();
+      const { error } = config.setConfigName("test.json").readInConfig();
       expect(error).toBe(ErrorInvalidFilePath);
     });
 
     test("missing mandatory file extension", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      config.setConfigName("test");
+      config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .setConfigName("test");
       const { error } = config.readInConfig();
       expect(error).toBe(ErrorNoFileType);
     });
 
     test("missing mandatory file extension", () => {
-      let config: ConfigReader;
-      config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      config.setConfigName("test.format");
+      config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .setConfigName("test.format");
       const { error } = config.readInConfig();
       expect(error).toBe(ErrorUnrecognisedFormat);
     });
@@ -47,9 +45,10 @@ describe("file based config tests", () => {
     let config: ConfigReader;
     beforeEach(() => {
       config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      config.setConfigName("test.json");
-      const { error } = config.readInConfig();
+      const { error } = config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .setConfigName("test.json")
+        .readInConfig();
       expect(error).toBe(undefined);
     });
     test("reads string value correctly", () => {
@@ -143,9 +142,10 @@ describe("file based config tests", () => {
     let config: ConfigReader;
     beforeAll(() => {
       config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      config.setConfigName("test.toml");
-      const { error } = config.readInConfig();
+      const { error } = config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .setConfigName("test.toml")
+        .readInConfig();
       expect(error).toBe(undefined);
     });
     test("reads string value correctly", () => {
@@ -193,9 +193,10 @@ describe("file based config tests", () => {
     let config: ConfigReader;
     beforeAll(() => {
       config = new ConfigReader();
-      config.addConfigPath(path.join(__dirname, "../testdata"));
-      config.setConfigName("test.yaml");
-      const { error } = config.readInConfig();
+      const { error } = config
+        .addConfigPath(path.join(__dirname, "../testdata"))
+        .setConfigName("test.yaml")
+        .readInConfig();
       expect(error).toBe(undefined);
     });
     test("reads string value correctly", () => {
