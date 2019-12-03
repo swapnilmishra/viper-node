@@ -86,6 +86,8 @@ describe("file based config tests", () => {
     test("reads int value correctly", () => {
       const age = config.getInt("age");
       expect(age).toBe(24);
+      config.setKV("age", 25);
+      expect(config.getInt("age")).toBe(25);
     });
 
     test("reads int value from env instead of config", () => {
@@ -115,8 +117,20 @@ describe("file based config tests", () => {
     });
 
     test("reads array of int values correctly", () => {
-      const counts = config.getIntArray("counts");
+      let counts = config.getIntArray("counts");
       expect(counts).toStrictEqual([1, 2, 3]);
+      config.setKV("counts", [10,11])
+      counts = config.getIntArray("counts");
+      expect(counts).toStrictEqual([10,11]);
+    });
+
+    test("reads array of float values correctly", () => {
+      expect(config.getFloatArray("random_prop")).toStrictEqual([])
+      let counts = config.getFloatArray("amounts");
+      expect(counts).toStrictEqual([3.33, 2.33]);
+      config.setKV("amounts", [10.2,11.3])
+      counts = config.getFloatArray("amounts");
+      expect(counts).toStrictEqual([10.2,11.3]);
     });
 
     test("returns empty array when the config is not found for getIntArray", () => {
@@ -193,25 +207,40 @@ describe("file based config tests", () => {
       expect(sitemap).toBe(0.5);
     });
 
-    test("reads float value from env correctly", () => {
+    test("reads explicitly set float value correctly", () => {
       config.setKV("sitemap.priority", 3.0);
       const sitemap = config.getFloat("sitemap.priority");
       expect(sitemap).toBe(3.0);
     });
 
+    test("reads float value from env correctly", () => {
+      process.env.SITEMAP_1 = "3.0";
+      const sitemap = config.getFloat("sitemap_1");
+      expect(sitemap).toBe(3.0);
+    });
+
     test("reads boolean value correctly", () => {
-      const ready = config.getBoolean("ready");
+      let ready = config.getBoolean("ready");
       expect(ready).toBeTruthy();
+      config.setKV("ready", false);
+      ready = config.getBoolean("ready");
+      expect(ready).toBeFalsy();
     });
 
     test("reads date value correctly", () => {
-      const publishDate = config.getDate("publishdate");
+      let publishDate = config.getDate("publishdate");
       expect(publishDate).toStrictEqual(new Date("2016-12-14T21:27:05.454Z"));
+      config.setKV("publishdate", "2016-11-14T21:27:05.454Z")
+      publishDate = config.getDate("publishdate");
+      expect(publishDate).toStrictEqual(new Date("2016-11-14T21:27:05.454Z"));
     });
 
     test("reads array of string values correctly", () => {
-      const tags = config.getStringArray("tags");
+      let tags = config.getStringArray("tags");
       expect(tags).toStrictEqual(["toml", "yaml", "json"]);
+      config.setKV("tags", ["xml", "what?"])
+      tags = config.getStringArray("tags");
+      expect(tags).toStrictEqual(["xml", "what?"]);
     });
 
     test("returns empty array when the config is not found for getStringArray", () => {
@@ -221,6 +250,18 @@ describe("file based config tests", () => {
   });
 
   describe("test object manipulation", function() {
+    test("sets the value into the key", () => {
+      const obj: any = {
+        firstName: "Swapnil",
+        surname: true
+      };
+
+      writeNestedProperty("surname", obj, false);
+      expect(obj).toStrictEqual({
+        firstName: "Swapnil",
+        surname: false
+      });
+    });
     test("sets the value into the key if it is already present", () => {
       const obj: any = {
         name: {

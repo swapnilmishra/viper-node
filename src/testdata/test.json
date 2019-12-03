@@ -4,5 +4,6 @@
   "married": true,
   "languages": ["german", "english"],
   "counts": [1, 2, "3"],
+  "amounts": [3.33, 2.33],
   "dateOfBirth": "2019-05-30T12:11:11.140Z"
 }

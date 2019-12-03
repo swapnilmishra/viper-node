@@ -108,11 +108,7 @@ export class ConfigReader implements IConfigReader {
   getBoolean(propertyPath: string): boolean {
     let conf: any;
     conf = readProp(propertyPath, this.kvCache);
-    if (conf) {
-      return Boolean(conf);
-    }
-    conf = this.readFromEnv(propertyPath);
-    if (conf) {
+    if (conf !== undefined) {
       return Boolean(conf);
     }
     conf = readProp(propertyPath, this.config);
@@ -121,10 +117,6 @@ export class ConfigReader implements IConfigReader {
   getDate(propertyPath: string): Date {
     let conf: any;
     conf = readProp(propertyPath, this.kvCache);
-    if (conf) {
-      return new Date(conf);
-    }
-    conf = this.readFromEnv(propertyPath);
     if (conf) {
       return new Date(conf);
     }
