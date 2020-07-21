@@ -54,7 +54,7 @@
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@types/js-yaml": "^3.12.1",
-    "codecov": "^3.5.0",
+    "codecov": "^3.7.1",
     "cz-conventional-changelog": "^2.1.0",
     "gh-pages": "^2.0.1",
     "jest": "^24.8.0",
